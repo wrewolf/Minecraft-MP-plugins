@@ -1,9 +1,15 @@
 __PocketMine Plugin__
+
 name=SignConsole
+
 description=Console access by sign
+
 version=0.2
+
 author=WreWolf
+
 class=SignConsole
+
 apiversion=7
 
 All command start with prefix //
