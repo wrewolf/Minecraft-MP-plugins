@@ -3,11 +3,11 @@
   /*
   __PocketMine Plugin__
   name=mobTest
-  description=Create some Mobs!
+  description=Create some NPCs!
   version=1.1
-  author=wrewolf
+  author=zhuowei
   class=MobTest
-  apiversion=8
+  apiversion=7
   */
 
   /*
@@ -16,7 +16,7 @@
 
   1.0: Initial release
 
-  1.1: Mob's follows the player, he does not push it
+  1.1: NPCs now chase you
 
   */
 
@@ -62,7 +62,7 @@
 
     public function command($cmd, $params, $issuer, $alias)
     {
-      console($cmd . " " . print_r($params,true));
+      console($cmd . " " . print_r($params, true));
       $npcname  = $params[0];
       $location = $this->api->level->getDefault()->getSpawn();
       if (count($params) <= 2) {
@@ -81,8 +81,8 @@
         }
         $location = new Position($locationX, $locationY, $locationZ, $locationWorld);
       }
-        $this->createMob($npcname, $location);
-        return "Created Mob at " . $location;
+      $this->createMob($npcname, $location);
+      return "Created Mob at " . $location;
     }
 
     public function rmcommand($cmd, $params, $issuer, $alias)
@@ -120,7 +120,7 @@
     define("MOB_SPIDER", 35);
     define("MOB_PIGMAN", 36);
       */
-      $npcname=strtolower(trim($npcname));
+      $npcname = strtolower(trim($npcname));
       switch ($npcname) {
         case "chicken":
           $type = 10;
@@ -149,8 +149,14 @@
         case "pigman":
           $type = 36;
           break;
+        case "rdz":
+          $type = rand(32, 36);
+          break;
+        case "rdm":
+          $type = rand(10, 13);
+          break;
         default:
-          $type=11;
+          $type = 11;
       }
       console("npcname=$npcname and type=$type");
       $entityit = $this->api->entity->add($this->api->level->getDefault(), ENTITY_MOB, $type, array(
@@ -165,13 +171,14 @@
       $npcplayer->entity = $entityit;
       array_push($this->npclist, $npcplayer);
       $npcconf                             = array(
-        "Pos"    => array(
+        "Pos"          => array(
           0 => $location->x,
           1 => $location->y,
           2 => $location->z,
         ),
-        "mobile" => true,
-        "name"   => $npcname
+        "mobile"       => true,
+        "name"         => $npcname,
+        "targetupdate" => 0
       );
       $this->config->get("mobs")[$npcname] = $npcconf;
       $this->config->save();
@@ -195,11 +202,17 @@
     public function tickHandler($data, $event)
     {
       $this->ticksuntilupdate = $this->ticksuntilupdate - 1;
-      $checkupdate            = false;
+      //$this->ticksuntilretarget = $this->ticksuntilretarget - 1;
+      $checkupdate = false;
+      //$targetupdate             = false;
       if ($this->ticksuntilupdate <= 0) {
-        $this->ticksuntilupdate = 5;
+        $this->ticksuntilupdate = 10;
         $checkupdate            = true;
       }
+      /*      if ($this->ticksuntilretarget <= 0) {
+              $this->ticksuntilretarget = 100;
+              $targetupdate             = true;
+            }*/
       foreach ($this->npclist as $p) {
         if ($p->entity->dead) {
           $p->entity->fire = 0;
@@ -209,54 +222,60 @@
           $this->api->entity->spawnToAll($p->entity, $p->level);
         }
         if ($checkupdate) {
-          if (isset($p->data["target"]) and $p->data["target"] instanceof Entity) {
-            $target = $p->data["target"];
-            if ($target->closed) {
-              unset($p->data["target"]);
+          //if (isset($p->data["target"]) and $p->data["target"] instanceof Entity) {
+          $p->data["npcconf"]["targetupdate"]--;
+          if (!isset($p->data["target"]) or $p->data["npcconf"]["targetupdate"] <= 0) {
+            $p->data["npcconf"]["targetupdate"] = rand(40, 80);
+            $p->data["target"]                  = array("x" => rand(0, 255), "y" => rand(50, 80), "z" => rand(0, 255));
+            console("new target " . $p->data["npcconf"]["name"] . " timeout=" . $p->data["npcconf"]["targetupdate"] . " dest ( " . $p->data["target"]["x"] . " , " . $p->data["target"]["y"] . " , " . $p->data["target"]["z"] . " ) ");
+          }
+          $target = $p->data["target"];
+          //if ($target->closed) {
+          //  unset($p->data["target"]);
+          //} else {
+          $xdiff    = $target["x"] - $p->entity->x;
+          $ydiff    = $target["y"] - $p->entity->y;
+          $zdiff    = $target["z"] - $p->entity->z;
+          $distaway = pow($xdiff, 2) + pow($ydiff, 2) + pow($zdiff, 2);
+          $angle    = atan2($zdiff, $xdiff) + rand(-M_PI/6,M_PI/6) ;
+          if ($p->data["npcconf"]["mobile"]) {
+            if ($distaway > 5 and rand(0, 100) > 25) {
+              $speedX            = cos($angle) * rand(10, 14) / 100;
+              $speedZ            = sin($angle) * rand(10, 14) / 100;
+              $p->entity->speedX = $speedX;
+              $p->entity->speedZ = $speedZ;
             } else {
-              $xdiff    = $target->x - $p->entity->x;
-              $ydiff    = $target->y - $p->entity->y;
-              $zdiff    = $target->z - $p->entity->z;
-              $distaway = pow($xdiff, 2) + pow($ydiff, 2) + pow($zdiff, 2);
-              $angle    = atan2($zdiff, $xdiff);
-              console ("distaway = $distaway \t angle=$angle");
-              if ($p->data["npcconf"]["mobile"]) {
-                if ($distaway > 5) {
-                  $speedX = cos($angle) * rand(0,20)/100;
-                  $speedZ = sin($angle) * rand(0,20)/100;
-                  $p->entity->speedX = $speedX;
-                  $p->entity->speedZ = $speedZ;
-                }else {
-                  $p->entity->speedX = 0;
-                  $p->entity->speedZ = 0;
-                }
-              } else {
-                $p->entity->speedX = 0;
-                $p->entity->speedZ = 0;
-              }
-              $p->entity->yaw = (($angle * 180) / M_PI) - rand(45,135);
-              $this->fireMoveEvent($p->entity);
-
+              $p->entity->speedX = 0;
+              $p->entity->speedZ = 0;
             }
-          }
-          $mindist   = 4500;
-          $minplayer = null;
-          foreach ($this->api->player->getAll($p->entity->level) as $otherp) {
-            if ($otherp === $p) continue;
-            if (!$otherp->connected or !$otherp->spawned) continue;
-            $distaway = pow($p->entity->x - $otherp->entity->x, 2) + pow($p->entity->y - $otherp->y, 2) + pow($p->entity->z - $otherp->entity->z, 2);
-            console("rastoyanie " . $p->data{"npcconf"}["name"] . " - " . $otherp->username . " = " . $distaway);
-            if (($minplayer == null || $distaway < $mindist) && $distaway<6000 ) {
-              $mindist   = $distaway;
-              $minplayer = $otherp;
-            }
-          }
-          if (!($minplayer instanceof Player) or $minplayer == null) {
-            $p->data["target"] = null;
-            console("min rastoyanie " . $p->data["npcconf"]["name"] . " - " . $otherp->username . " = " . $distaway);
           } else {
-            $p->data["target"] = $minplayer->entity;
+            $p->entity->speedX = 0;
+            $p->entity->speedZ = 0;
           }
+          $p->entity->yaw = (($angle * 180) / M_PI) - rand(40, 14);
+          $this->fireMoveEvent($p->entity);
+
+          //}
+          //}
+
+          /*          $mindist   = 4500;
+                    $minplayer = null;
+                    foreach ($this->api->player->getAll($p->entity->level) as $otherp) {
+                      if ($otherp === $p) continue;
+                      if (!$otherp->connected or !$otherp->spawned) continue;
+                      $distaway = pow($p->entity->x - $otherp->entity->x, 2) + pow($p->entity->y - $otherp->y, 2) + pow($p->entity->z - $otherp->entity->z, 2);
+                      console("rastoyanie " . $p->data{"npcconf"}["name"] . " - " . $otherp->username . " = " . $distaway);
+                      if (($minplayer == null || $distaway < $mindist) && $distaway<6000 ) {
+                        $mindist   = $distaway;
+                        $minplayer = $otherp;
+                      }
+                    }
+                    if (!($minplayer instanceof Player) or $minplayer == null) {
+                      $p->data["target"] = null;
+                      console("min rastoyanie " . $p->data["npcconf"]["name"] . " - " . $otherp->username . " = " . $distaway);
+                    } else {
+                      $p->data["target"] = $minplayer->entity;
+                    }*/
         }
         //TODO: more physics on the players. Attacking
       }
