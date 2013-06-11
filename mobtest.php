@@ -3,11 +3,11 @@
   /*
   __PocketMine Plugin__
   name=mobTest
-  description=Create some NPCs!
+  description=Create some Mobs!
   version=1.1
-  author=zhuowei
+  author=wrewolf
   class=MobTest
-  apiversion=7
+  apiversion=8
   */
 
   /*
@@ -16,7 +16,7 @@
 
   1.0: Initial release
 
-  1.1: NPCs now chase you
+  1.1: Mob's follows the player, he does not push it
 
   */
 
