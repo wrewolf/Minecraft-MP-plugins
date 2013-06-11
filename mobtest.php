@@ -219,15 +219,16 @@
               $zdiff    = $target->z - $p->entity->z;
               $distaway = pow($xdiff, 2) + pow($ydiff, 2) + pow($zdiff, 2);
               $angle    = atan2($zdiff, $xdiff);
+              console ("distaway = $distaway \t angle=$angle");
               if ($p->data["npcconf"]["mobile"]) {
-                if ($distaway > 2 and $distaway<5500) {
-
+                if ($distaway > 5) {
                   $speedX = cos($angle) * rand(0,20)/100;
                   $speedZ = sin($angle) * rand(0,20)/100;
-
-
                   $p->entity->speedX = $speedX;
                   $p->entity->speedZ = $speedZ;
+                }else {
+                  $p->entity->speedX = 0;
+                  $p->entity->speedZ = 0;
                 }
               } else {
                 $p->entity->speedX = 0;
@@ -238,7 +239,7 @@
 
             }
           }
-          $mindist   = -1;
+          $mindist   = 4500;
           $minplayer = null;
           foreach ($this->api->player->getAll($p->entity->level) as $otherp) {
             if ($otherp === $p) continue;
