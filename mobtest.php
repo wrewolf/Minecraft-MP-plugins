@@ -37,7 +37,8 @@
     {
       $this->path = $this->api->plugin->configPath($this);
       $this->api->console->register("spawnmob", "Add an Mob. /spawnmob [name] [player location] OR /spawnmob [name] <x> <y> <z> <world>", array($this, "command"));
-      $this->api->console->register("rmmob", "Remove an NPC. /rmnpc [name]", array($this, "rmcommand"));
+      $this->api->console->register("rmmob", "Remove an NPC. /rmmob]", array($this, "rmcommand"));
+      $this->api->console->register("lsmob", "List an NPC. /lsmob]", array($this, "lscommand"));
       $this->api->schedule($this->ticksuntilupdate, array($this, "tickHandler"), array(), true, "server.schedule");
       $this->config = new Config($this->path . "config.yml", CONFIG_YAML, array(
         "mobs" => array(),
@@ -87,9 +88,13 @@
 
     public function rmcommand($cmd, $params, $issuer, $alias)
     {
-      $npcname = $params[0];
-      $this->removeNpc($npcname);
-      return "Removed NPC " . $npcname;
+      $this->npclist=array();
+      return "Removed Mobs " . $npcname;
+    }
+
+    public function lscommand($cmd, $params, $issuer, $alias)
+    {
+      console("Mobs list " .print_r($this->npclist,true));
     }
 
 
@@ -158,6 +163,11 @@
         default:
           $type = 11;
       }
+      if(count($this->npclist)>2)
+      {
+      console("mnogo mobov");
+      return;
+      }
       console("npcname=$npcname and type=$type");
       $entityit = $this->api->entity->add($this->api->level->getDefault(), ENTITY_MOB, $type, array(
         "x"      => $location->x,
@@ -169,6 +179,7 @@
       $entityit->setName($npcname);
       $this->api->entity->spawnToAll($entityit, $this->api->level->getDefault());
       $npcplayer->entity = $entityit;
+      
       array_push($this->npclist, $npcplayer);
       $npcconf                             = array(
         "Pos"          => array(
@@ -227,7 +238,7 @@
           if (!isset($p->data["target"]) or $p->data["npcconf"]["targetupdate"] <= 0) {
             $p->data["npcconf"]["targetupdate"] = rand(40, 80);
             $p->data["target"]                  = array("x" => rand(0, 255), "y" => rand(50, 80), "z" => rand(0, 255));
-            console("new target " . $p->data["npcconf"]["name"] . " timeout=" . $p->data["npcconf"]["targetupdate"] . " dest ( " . $p->data["target"]["x"] . " , " . $p->data["target"]["y"] . " , " . $p->data["target"]["z"] . " ) ");
+    //        console("new target " . $p->data["npcconf"]["name"] . " timeout=" . $p->data["npcconf"]["targetupdate"] . " dest ( " . $p->data["target"]["x"] . " , " . $p->data["target"]["y"] . " , " . $p->data["target"]["z"] . " ) ");
           }
           $target = $p->data["target"];
           //if ($target->closed) {

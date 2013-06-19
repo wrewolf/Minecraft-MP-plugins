@@ -6,7 +6,7 @@ description=Helper
 version=0.1
 author=WreWolf
 class=Helper
-apiversion=7
+apiversion=9
 */
   /*
 
