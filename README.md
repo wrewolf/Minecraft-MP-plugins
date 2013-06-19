@@ -13,8 +13,6 @@ Set this gamemod in player connect to server. You users don't change gamemod
 
 Say to player his coordinates
 
-#helper
-
 #prizon
 `/prizone <player>`
 
@@ -69,3 +67,8 @@ Spawn NPS on <player> position
 after spawning NPC  goes to random direction
 #OnlineCount
 
+Under construction
+
+#helper
+
+code example 
