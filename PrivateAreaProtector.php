@@ -47,18 +47,15 @@
           case "protect":
             console("command handeler console protect");
             foreach ($this->config as $key => $level) {
-              foreach ($level as $uname=>$name) {
-                foreach ($name as $config) {
-
-                  if ($config['protect']) {
-                    $protect = "1";
-                  } else {
-                    $protect = "0";
-                  }
-                  $min = implode(",", $config['min']);
-                  $max = implode(",", $config['max']);
-                  $output .= "[\x1b[32mPROTECT: " . $protect . "\x1b[0m] " . $uname . "'s area (\x1b[36m" . $min . "\x1b[0m)-(\x1b[36m" . $max . "\x1b[0m) : $key\n";
+              foreach ($level as $name => $config) {
+                if ($config['protect']) {
+                  $protect = "1";
+                } else {
+                  $protect = "0";
                 }
+                $min = implode(",", $config['min']);
+                $max = implode(",", $config['max']);
+                $output .= "[\x1b[32mPROTECT: " . $protect . "\x1b[0m] " . $name . "'s area (\x1b[36m" . $min . "\x1b[0m)-(\x1b[36m" . $max . "\x1b[0m) : $key\n";
               }
             }
             break;
@@ -67,22 +64,21 @@
             console("command handeler console unprotect");
             $level = array_shift($params);
             $user  = array_shift($params);
-            $area  = array_shift($params);
             if (empty($user)) {
-              $output .= "Usage: /unprotect <level> <area owner> <area>\n";
+              $output .= "Usage: /unprotect <level> <area owner>\n";
               break;
             }
-            if (!$this->config[$level][$user][$area]['protect']) {
+            if (!$this->config[$level][$user]['protect']) {
               $output .= "His area is not protected.\n";
               break;
             }
-            $this->config[$level][$user][$area]['protect'] = false;
+            $this->config[$level][$user]['protect'] = false;
             $this->writeConfig($this->config);
             $output .= "Lifted the protection.\n";
             break;
         }
       } elseif ($issuer instanceof Player) {
-        console("command handeler console");
+        console("command handeler payer");
         $user = $issuer->username;
         switch ($cmd) {
           case "protect":
@@ -94,18 +90,18 @@
                   $output .= "Make a selection first.\nUsage: /protect <pos1 | pos2>\n";
                   break;
                 }
-                $pos1                          = $this->pos1[$user];
-                $pos2                          = $this->pos2[$user];
-                $minX                          = min($pos1[0], $pos2[0]);
-                $maxX                          = max($pos1[0], $pos2[0]);
-                $minY                          = min($pos1[1], $pos2[1]);
-                $maxY                          = max($pos1[1], $pos2[1]);
-                $minZ                          = min($pos1[2], $pos2[2]);
-                $maxZ                          = max($pos1[2], $pos2[2]);
-                $max                           = array($maxX, $maxY, $maxZ);
-                $min                           = array($minX, $minY, $minZ);
-                $level                         = $issuer->entity->level->getName();
-                $this->config[$level][$user][] = array("protect" => true, "min" => $min, "max" => $max);
+                $pos1                        = $this->pos1[$user];
+                $pos2                        = $this->pos2[$user];
+                $minX                        = min($pos1[0], $pos2[0]);
+                $maxX                        = max($pos1[0], $pos2[0]);
+                $minY                        = min($pos1[1], $pos2[1]);
+                $maxY                        = max($pos1[1], $pos2[1]);
+                $minZ                        = min($pos1[2], $pos2[2]);
+                $maxZ                        = max($pos1[2], $pos2[2]);
+                $max                         = array($maxX, $maxY, $maxZ);
+                $min                         = array($minX, $minY, $minZ);
+                $level                       = $issuer->entity->level->getName();
+                $this->config[$level][$user] = array("protect" => true, "min" => $min, "max" => $max);
                 $this->writeConfig($this->config);
                 $output .= "Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
                 break;
@@ -128,7 +124,7 @@
                 $output .= "[AreaProtector] Second position set to (" . $this->pos2[$user][0] . ", " . $this->pos2[$user][1] . ", " . $this->pos2[$user][2] . ")\n";
                 break;
               default:
-                $output .= "Usage: /protect\nUsage: /protect pos1\nUsage: /protect pos2\n";
+                $output .= "Usage: /protect\nUsage: /protect1\nUsage: /protect2\n";
             }
             break;
           case "unprotect":
@@ -137,19 +133,8 @@
               break;
             }
             $level = $issuer->entity->level->getName();
-            $area  = null;
-            foreach ($this->config[$level][$user] as $Area) {
-              if ($Area['min'][0] <= $issuer->entity->x and $issuer->entity->x <= $Area['max'][0]) {
-                if ($Area['min'][1] <= $issuer->entity->y and $issuer->entity->y <= $Area['max'][1]) {
-                  if ($Area['min'][2] <= $issuer->entity->z and $issuer->entity->z <= $Area['max'][2]) {
-                    $area = $Area;
-                    break;
-                  }
-                }
-              }
-            }
-            if ($area !== null) {
-              $this->config[$level][$user][$area]['protect'] = false;
+            if ($this->config[$level][$user]['protect']) {
+              $this->config[$level][$user]['protect'] = false;
               $this->writeConfig($this->config);
               $output .= "Lifted the protection.\n";
             } else {
@@ -163,7 +148,7 @@
 
     public function checkProtect($data, $name, $config)
     {
-//      console("{$config['min'][0]},{$config['min'][1]},{$config['min'][2]}  {$config['max'][0]},{$config['max'][1]},{$config['max'][2]}  : {$data['target']->x},{$data['target']->y},{$data['target']->z} ");
+      $this->debug_print("{$config['min'][0]},{$config['min'][1]},{$config['min'][2]}  {$config['max'][0]},{$config['max'][1]},{$config['max'][2]}  : {$data['target']->x},{$data['target']->y},{$data['target']->z} ");
       if ($config['min'][0] <= $data['target']->x and $data['target']->x <= $config['max'][0]) {
         if ($config['min'][1] <= $data['target']->y and $data['target']->y <= $config['max'][1]) {
           if ($config['min'][2] <= $data['target']->z and $data['target']->z <= $config['max'][2]) {
@@ -182,12 +167,10 @@
         case 'player.block.touch':
         case 'player.block.place':
           $level = $data['player']->entity->level->getName();
-          foreach ($this->config[$level] as $uname=>$name) {
-            foreach ($name as $config) {
-              if (!$config['protect'] or $uname == $data['player']->username) {
-                continue;
-              }
-              if ($this->checkProtect($data, $uname, $config))
+          foreach ($this->config[$level] as $name => $config) {
+            if (!$config['protect'] or $name == $data['player']->username) {
+              continue;
+              if ($this->checkProtect($data, $name, $config))
                 return false;
             }
           }
@@ -197,12 +180,18 @@
 
     public function createConfig()
     {
-      $this->path   = $this->api->plugin->createConfig($this, array($this->api->level->getDefault()->getName()=>array()));
+      $this->path   = $this->api->plugin->createConfig($this, array($this->api->level->getDefault()->getName() => array()));
       $this->config = $this->api->plugin->readYAML($this->path . "config.yml");
     }
 
     public function writeConfig($data)
     {
       $this->api->plugin->writeYAML($this->path . "config.yml", $data);
+    }
+
+    function debug_print($str)
+    {
+      //console($str);
+
     }
   }
