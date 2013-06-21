@@ -1,13 +1,10 @@
 <?php
-  ob_start();
-?>
-  <html>
-  <body>
-  <?php
+  if (!file_exists("map.png")) {
+    ob_start();
     set_time_limit(0);
     require_once("Spyc.php");
-    $file = "config.yml";
-    $yaml = file_get_contents($file);
+    $file   = "config.yml";
+    $yaml   = file_get_contents($file);
     $parsed = Spyc::YAMLLoad($yaml);
     if (!isset($_GET['size']))
       $size = 2;
@@ -64,25 +61,33 @@
       109 => "stonebrickstairs",
       128 => "sandstonestairs"
     );
-  ?>
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="<?= $size*256 ?>" height="<?= $size*256 ?>">
-    <defs><?php foreach ($names as $name) {
-        if(!file_exists("Textures/$name.png"))
-          die("Textures/$name.png");
-        ?><pattern id="<?= $name ?>" patternUnits="userSpaceOnUse" x="0" y="0" width="<?= $size ?>" height="<?= $size ?>" viewBox="0 0 <?= $size ?> <?= $size ?>">
-  <image xlink:href="Textures/<?= $name ?>.png" height="<?= $size ?>" width="<?= $size ?>"/>
-</pattern><?php } ?></defs><?php
-      foreach ($parsed as $x => $row) {
-        foreach ($row as $y => $col) {
-          ?><rect x="<?php echo $size * $y; ?>" y="<?php echo $size * $x; ?>" width="<?= $size ?>" height="<?= $size ?>" fill="url(#<?php echo $names[$col] ?>)" /><?php
-        }
-      }
     ?>
-  </svg>
-  </body>
-  </html>
-
-<?php
-
-  file_put_contents("map.html", ob_get_contents());
-  ob_flush();
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="<?= $size * 256 ?>" height="<?= $size * 256 ?>">
+    <defs><?php foreach ($names as $name) {
+      if (!file_exists("Textures/$name.png"))
+        die("Textures/$name.png");
+      ?>
+      <pattern id="<?= $name ?>" patternUnits="userSpaceOnUse" x="0" y="0" width="<?= $size ?>" height="<?= $size ?>" viewBox="0 0 <?= $size ?> <?= $size ?>">
+      <image xlink:href="Textures/<?= $name ?>.png" height="<?= $size ?>" width="<?= $size ?>"/></pattern><?php } ?></defs><?php
+    foreach ($parsed as $x => $row) {
+      foreach ($row as $y => $col) {
+        ?>
+        <rect x="<?php echo $size * $y; ?>" y="<?php echo $size * $x; ?>" width="<?= $size ?>" height="<?= $size ?>" fill="url(#<?php echo $names[$col] ?>)" /><?php
+      }
+    }
+    ?></svg><?php
+    $svg = ob_get_contents();
+    $im  = new Imagick();
+    $im->readImageBlob($svg);
+    $im->setImageFormat("png24");
+    $im->writeImage('map.png');
+    $im->clear();
+    $im->destroy();
+    ob_clear();
+  }
+?>
+<html>
+<body>
+<img src="map.png">
+</body>
+</html>
