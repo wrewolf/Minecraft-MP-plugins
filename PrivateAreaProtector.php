@@ -28,7 +28,7 @@
       $this->api->ban->cmdWhitelist("unprotect");
       $this->api->ban->cmdWhitelist("protect");
       $this->api->addHandler("player.block.place", array($this, "handle"), 7);
-      $this->api->addHandler("player.block.touch", array($this, "handle"), 7);
+      //$this->api->addHandler("player.block.touch", array($this, "handle"), 7);
       $this->api->addHandler("player.block.break", array($this, "handle"), 7);
       $this->api->console->alias("protect1", "protect pos1");
       $this->api->console->alias("protect2", "protect pos2");
@@ -169,8 +169,9 @@
     public function handle($data, $event)
     {
       switch ($event) {
-        case 'player.block.break':
         case 'player.block.touch':
+          console("touch PrivateAreaProtector");
+        case 'player.block.break':
         case 'player.block.place':
           $level = $data['player']->entity->level->getName();
           foreach ($this->config[$level] as $name => $config) {

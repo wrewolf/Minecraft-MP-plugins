@@ -67,7 +67,7 @@ Small Changelog
               break 2;
           }
           TreeObject::growTree($issuer->level, new Vector3 (((int)$issuer->entity->x), ((int)$issuer->entity->y), ((int)$issuer->entity->z)), new Random(), $meta);
-          $output .= $this->getMessage("treeSpawned");
+          $output .= "tree " . strtolower($params[0]) . " spawned";
           break;
       }
       return $output;
