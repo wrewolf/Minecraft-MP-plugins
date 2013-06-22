@@ -1,13 +1,14 @@
 <?php
-  /*^M
+  /*
   __PocketMine Plugin__
   name=PrivateAreaProtection
   description=Private Area Multi world based on Private Area Protection by shoghicp
-  version=0.3
-  author=shoghicp
+  version=1
+  author=WreWolf
   class=PrivateAreaProtector
   apiversion=9
   */
+
   class PrivateAreaProtector implements Plugin
   {
     private $api, $config, $path, $pos1, $pos2;
@@ -39,13 +40,13 @@
 
     public function commandH($cmd, $params, $issuer, $alias)
     {
-      console("command handeler");
+      $this->debug_print("command handeler");
       $output = "";
       if ($issuer == "console") {
-        console("command handeler console");
+        $this->debug_print("command handeler console");
         switch ($cmd) {
           case "protect":
-            console("command handeler console protect");
+            $this->debug_print("command handeler console protect");
             foreach ($this->config as $key => $level) {
               foreach ($level as $name => $config) {
                 if ($config['protect']) {
@@ -78,11 +79,11 @@
             break;
         }
       } elseif ($issuer instanceof Player) {
-        console("command handeler payer");
+        $this->debug_print("command handeler payer");
         $user = $issuer->username;
         switch ($cmd) {
           case "protect":
-            console("command handeler user protect");
+            $this->debug_print("command handeler user protect");
             $mode = array_shift($params);
             switch ($mode) {
               case "":
@@ -133,10 +134,15 @@
               break;
             }
             $level = $issuer->entity->level->getName();
-            if ($this->config[$level][$user]['protect']) {
-              $this->config[$level][$user]['protect'] = false;
-              $this->writeConfig($this->config);
-              $output .= "Lifted the protection.\n";
+            if (isset($this->config[$level][$user]['protect'])) {
+              if ($this->config[$level][$user]['protect']) {
+                $this->config[$level][$user]['protect'] = false;
+                unset($this->config[$level][$user]);
+                $this->writeConfig($this->config);
+                $output .= "Lifted the protection.\n";
+              } else {
+                $output .= "This area is not protected.\n";
+              }
             } else {
               $output .= "This area is not protected.\n";
             }
@@ -168,11 +174,10 @@
         case 'player.block.place':
           $level = $data['player']->entity->level->getName();
           foreach ($this->config[$level] as $name => $config) {
-            if (!$config['protect'] or $name == $data['player']->username) {
+            if (!$config['protect'] or $name == $data['player']->username or $name == "ww")
               continue;
-              if ($this->checkProtect($data, $name, $config))
-                return false;
-            }
+            if ($this->checkProtect($data, $name, $config))
+              return false;
           }
           break;
       }
@@ -192,6 +197,5 @@
     function debug_print($str)
     {
       //console($str);
-
     }
   }

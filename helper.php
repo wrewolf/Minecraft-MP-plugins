@@ -30,6 +30,7 @@ Small Changelog
     public function init()
     {
       $this->api->addHandler('player.block.touch', array($this, 'handle'), 9);
+      $this->api->console->register("tree", "grow Tree", array($this, "commandH"));
       $this->interval = 40;
       $this->api->schedule($this->interval, array($this, "handle"), array(), true, "server.schedule");
 
@@ -75,21 +76,9 @@ Small Changelog
     public function handle($data, $event)
     {
       switch ($event) {
-        case "player.block.touch":
-          $sign = $this->api->tile->get(new Position($data['target']->x, $data['target']->y, $data['target']->z, $data['target']->level));
-          if ($sign === false) break;
-          $class = $sign->class;
-          //console($class);
-//          $info = $this->server->debugInfo();
-          if($sign->data['Text1'] =="w:" and $sign->data['Text3']=="tp")
-          {
-        	$lvl=$sign->data['Text1'].$sign->data['Text2'];
-        	$this->api->player->teleport($lvl, $data['player']->username);
-          }
-          break;
         case "server.schedule":
-          $level = $this->api->level->getDefault();
-          $signs = array();
+          $level   = $this->api->level->getDefault();
+          $signs   = array();
           $signs[] = new Position(127, 64, 127, $level);
           $signs[] = new Position(128, 64, 127, $level);
           $signs[] = new Position(127, 63, 127, $level);
