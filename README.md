@@ -72,3 +72,18 @@ Under construction
 #helper
 
 code example 
+
+
+#SimpleGroup
+команды групп доступны только опам.
+addgroup <name> создать группу
+rmgroup <name> удалить группу
+lsgroup список групп
+
+group add|rm|ls
+add <user> <group> добавить пользователя в группу
+rm <user> <group> удалить пользователя из группы
+ls список групп пользователя
+
++ мидифицированная версия PrivateAreaProtector
+`/protect g <groupname>`

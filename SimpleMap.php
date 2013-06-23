@@ -23,7 +23,6 @@ apiversion=9
       $this->tiks = 0;
 
       $this->api->console->register('makemap', 'online on the server.', array($this, 'commandH'));
-console("Array =" . print_r(array(AIR,TORCH,SIGN_POST,WALL_SIGN),true) );
     }
 
     public function commandH($cmd, $params, $issuer, $alias)

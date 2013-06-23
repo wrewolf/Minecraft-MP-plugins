@@ -31,6 +31,8 @@ Small Changelog
     {
       $this->api->addHandler('player.block.touch', array($this, 'handle'), 9);
       $this->api->console->register("tree", "grow Tree", array($this, "commandH"));
+      $this->api->console->register("heal", "Heal <nick>", array($this, "commandH"));
+      $this->api->console->register("god", "god <nick>", array($this, "commandH"));
       $this->interval = 40;
       $this->api->schedule($this->interval, array($this, "handle"), array(), true, "server.schedule");
 
@@ -44,6 +46,34 @@ Small Changelog
     {
       $output = "";
       switch ($cmd) {
+        case "god":
+          if (!($issuer == "Console") and $params[0] == "") {
+            $output .= "Usage: /$cmd <player>\n";
+            break;
+          }
+          if ($params[0] != "") {
+            $issuer = $this->api->player->get($params[0]);
+            if ($issuer === false) {
+              $output .= "player " . $params[0] . " NotFound";
+              break;
+            }
+          }
+          $this->api->entity->heal($issuer->eid, 32767);
+          break;
+        case "heal":
+          if (!($issuer instanceof Player) and $params[0] == "") {
+            $output .= "Usage: /$cmd <player>\n";
+            break;
+          }
+          if ($params[0] != "") {
+            $issuer = $this->api->player->get($params[0]);
+            if ($issuer === false) {
+              $output .= "player " . $params[0] . " NotFound";
+              break;
+            }
+          }
+          $this->api->entity->heal($issuer->eid, 20);
+          break;
         case "tree":
           if (!($issuer instanceof Player)) {
             $output .= "Please run this command in-game.\n";

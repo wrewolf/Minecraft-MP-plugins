@@ -60,7 +60,8 @@ Small Changelog
             $prisonPos = new Position($this->prizons['prizon']['x'], $this->prizons['prizon']['y'], $this->prizons['prizon']['z'], $level);
             $user->setSpawn($prisonPos);
             $user->teleport($prisonPos);
-            console("User " . $user->username . " jailed by " . $issuer->username);
+
+            $this->api->chat->broadcast("User " . $user->username . " jailed by " . $issuer->username);
           }
           break;
         case "unprizone":
@@ -72,7 +73,7 @@ Small Changelog
 
             $user->setSpawn($level->getSpawn());
             $user->teleport($level->getSpawn());
-            console("User " . $user->username . " released from jail by " . $issuer->username);
+            $this->api->chat->broadcast("User " . $user->username . " released from jail by " . $issuer->username);
           }
           break;
         case "prizonelist":
@@ -97,7 +98,7 @@ Small Changelog
       switch ($event) {
         case "player.join":
 
-          console("[debug] join " . $data->username);
+          //console("[debug] join " . $data->username);
 
           $level     = $this->api->level->getDefault();
           $prisonPos = new Position($this->prizons['prizon']['x'], $this->prizons['prizon']['y'], $this->prizons['prizon']['z'], $level);

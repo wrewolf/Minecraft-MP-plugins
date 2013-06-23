@@ -25,6 +25,7 @@
       $this->createConfig();
       $this->api->console->register("unprotect", "Unprotects your private area.", array($this, "commandH"));
       $this->api->console->register("protect", "Protects the area for you.", array($this, "commandH"));
+      $this->api->console->register("sprotect", "Spec Protects the area for console.", array($this, "commandH"));
       $this->api->ban->cmdWhitelist("unprotect");
       $this->api->ban->cmdWhitelist("protect");
       $this->api->addHandler("player.block.place", array($this, "handle"), 7);
@@ -45,6 +46,28 @@
       if ($issuer == "console") {
         $this->debug_print("command handeler console");
         switch ($cmd) {
+          case "sprotect":
+            if (count($params) == 8) {
+              $owner = array_shift($params);
+              $level = array_shift($params);
+              $pos1  = array(array_shift($params), array_shift($params), array_shift($params));
+              $pos2  = array(array_shift($params), array_shift($params), array_shift($params));
+              $minX  = min($pos1[0], $pos2[0]);
+              $maxX  = max($pos1[0], $pos2[0]);
+              $minY  = min($pos1[1], $pos2[1]);
+              $maxY  = max($pos1[1], $pos2[1]);
+              $minZ  = min($pos1[2], $pos2[2]);
+              $maxZ  = max($pos1[2], $pos2[2]);
+              $max   = array($maxX, $maxY, $maxZ);
+              $min   = array($minX, $minY, $minZ);
+
+              $this->config[$level][$owner] = array("protect" => true, "min" => $min, "max" => $max);
+              $this->writeConfig($this->config);
+              $output .= "Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
+            } else {
+              $output .= "usage sprotect nick level x1 y1 z1 x y2 z2";
+            }
+            break;
           case "protect":
             $this->debug_print("command handeler console protect");
             foreach ($this->config as $key => $level) {
@@ -62,7 +85,7 @@
             break;
           case
           "unprotect":
-            console("command handeler console unprotect");
+            //console("command handeler console unprotect");
             $level = array_shift($params);
             $user  = array_shift($params);
             if (empty($user)) {
@@ -86,29 +109,40 @@
             $this->debug_print("command handeler user protect");
             $mode = array_shift($params);
             switch ($mode) {
+              case "g";
+                $group            = array_shift($params);
+                $usercheckingroup = $this->api->dhandle("group.existOf", array('user' => $user, "group" => $group));
+                if (!$usercheckingroup) {
+                  $output .= "you are not a member of a group $group\n";
+                  break;
+                }
               case "":
                 if (!isset($this->pos1[$user]) or !isset($this->pos2[$user])) {
                   $output .= "Make a selection first.\nUsage: /protect <pos1 | pos2>\n";
                   break;
                 }
-                $pos1                        = $this->pos1[$user];
-                $pos2                        = $this->pos2[$user];
-                $minX                        = min($pos1[0], $pos2[0]);
-                $maxX                        = max($pos1[0], $pos2[0]);
-                $minY                        = min($pos1[1], $pos2[1]);
-                $maxY                        = max($pos1[1], $pos2[1]);
-                $minZ                        = min($pos1[2], $pos2[2]);
-                $maxZ                        = max($pos1[2], $pos2[2]);
-                $max                         = array($maxX, $maxY, $maxZ);
-                $min                         = array($minX, $minY, $minZ);
-                $level                       = $issuer->entity->level->getName();
-                $this->config[$level][$user] = array("protect" => true, "min" => $min, "max" => $max);
+                $pos1  = $this->pos1[$user];
+                $pos2  = $this->pos2[$user];
+                $minX  = min($pos1[0], $pos2[0]);
+                $maxX  = max($pos1[0], $pos2[0]);
+                $minY  = min($pos1[1], $pos2[1]);
+                $maxY  = max($pos1[1], $pos2[1]);
+                $minZ  = min($pos1[2], $pos2[2]);
+                $maxZ  = max($pos1[2], $pos2[2]);
+                $max   = array($maxX, $maxY, $maxZ);
+                $min   = array($minX, $minY, $minZ);
+                $level = $issuer->entity->level->getName();
+                if ($mode == "") {
+                  $this->config[$level][$user] = array("protect" => true, "min" => $min, "max" => $max);
+                } else {
+                  $this->config[$level]["g:" . $group] = array("protect" => true, "min" => $min, "max" => $max);
+                }
                 $this->writeConfig($this->config);
                 $output .= "Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
                 break;
               case "pos1":
               case "1":
-                console("command handeler user pos1");
+                //console("command handeler user pos1");
                 $x                 = round($issuer->entity->x - 0.5);
                 $y                 = round($issuer->entity->y);
                 $z                 = round($issuer->entity->z - 0.5);
@@ -117,7 +151,7 @@
                 break;
               case "pos2":
               case "2":
-                console("command handeler user pos2");
+                //console("command handeler user pos2");
                 $x                 = round($issuer->entity->x - 0.5);
                 $y                 = round($issuer->entity->y);
                 $z                 = round($issuer->entity->z - 0.5);
@@ -155,14 +189,27 @@
     public function checkProtect($data, $name, $config)
     {
       $this->debug_print("{$config['min'][0]},{$config['min'][1]},{$config['min'][2]}  {$config['max'][0]},{$config['max'][1]},{$config['max'][2]}  : {$data['target']->x},{$data['target']->y},{$data['target']->z} ");
+
       if ($config['min'][0] <= $data['target']->x and $data['target']->x <= $config['max'][0]) {
         if ($config['min'][1] <= $data['target']->y and $data['target']->y <= $config['max'][1]) {
           if ($config['min'][2] <= $data['target']->z and $data['target']->z <= $config['max'][2]) {
-            $this->api->chat->sendTo(false, "This is $name's private area.", $data['player']->username);
-            return true;
+            if (substr($name, 0, 2) == "g:") {
+              $usercheckingroup = $this->api->dhandle("group.existOf", array('user' => $data['player']->username, "group" => substr($name, 2)));
+              if (!$usercheckingroup) {
+                $name = substr($name, 2);
+                $this->api->chat->sendTo(false, "This is Group $name's private area.", $data['player']->username);
+                return true;
+              } else {
+                return false;
+              }
+            } else {
+              $this->api->chat->sendTo(false, "This is $name's private area.", $data['player']->username);
+              return true;
+            }
           }
         }
       }
+
       return false;
     }
 
@@ -170,7 +217,7 @@
     {
       switch ($event) {
         case 'player.block.touch':
-          console("touch PrivateAreaProtector");
+          //console("touch PrivateAreaProtector");
         case 'player.block.break':
         case 'player.block.place':
           $level = $data['player']->entity->level->getName();
