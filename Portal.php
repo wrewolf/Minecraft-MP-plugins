@@ -66,7 +66,7 @@
                     $username=$data['player']->username;
                     console("teleport('$lvlname', $username)");
                     $this->api->level->loadLevel($mapname);
-                    $this->api->player->teleport($lvlname, $username);
+                    $this->api->player->teleport($username,$lvlname);
                   }
                   break;
               }

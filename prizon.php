@@ -51,6 +51,19 @@ Small Changelog
     {
       $output = "";
       switch ($cmd) {
+        case 'setprizone':
+
+
+          array_push($this->prizons['users'], $issuer->username);
+          $this->prizons['prizon']['x'] = $issuer->entity->x;
+          $this->prizons['prizon']['y'] = $issuer->entity->y;
+          $this->prizons['prizon']['z'] = $issuer->entity->z;
+
+          $this->saveConfig();
+          $this->api->chat->sendTo(false, "Prison position seted", $issuer->username);
+
+
+          break;
         case 'prizone':
           $user = $this->api->player->get($params[0]);
           if ($user instanceof Player) {
