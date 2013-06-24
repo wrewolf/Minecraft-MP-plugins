@@ -26,20 +26,107 @@ Release player
 
 List of prizoners
 
+`/setprizone`
+
+set prizone position
+
 **Setup needed**
 
 Prizon/config.yml
 set coordinates of Prizone
 
 #SetHome
-`/sethome`
 
-set player spawn in current point to this player session
+`/sethome` 
+
+set home position
+
+`/home` 
+
+return to home position
+
+set player home
 
 #settime
 **Setup needed**
 
 Current set timezone to Russia Moscow, to setup edit plugin php code.
+
+#helper
+
+`/god <nick>`
+
+Give 32767 health, only from console
+
+`/heal <nick>` 
+
+Give 20 health
+
+`/tree <tree|brich|redwood>`
+
+Grow treein player position, after quickly step back you inside tree and get damage
+
+#SimpleGroup
+
+Group commands access only for op's
+
+`/addgroup <name>`
+
+create group
+
+`/rmgroup <name>`
+
+remove group
+
+`/lsgroup`
+
+list of groups
+
+`/group add|rm|ls`
+
+`add <user> <group>`
+
+ add user to group
+
+`rm <user> <group>`
+
+ remove user from group
+
+`ls`
+
+ user groups list
+
++ modivied version PrivateAreaProtector
+`/protect g <groupname>`
+
+#PeacefulSpawn
+
+Not made from me, but i place it this :)
+
+#PVPZone
+
+Register PVP zone on server, only inside this area player may take damage
+
+`setpvpzone <level> <x1> <y1> <z1> <x2> <y2> <z2>`
+
+Set PVP zone
+
+#Portal
+
+Teleport player in world
+
+Plase Sign with text
+
+`w:`
+
+`<world>`
+
+`tp`
+
+`Description`
+
+At the touch player will be teleported
+
 
 #SimpleMap
 `/makemap`
@@ -65,25 +152,7 @@ after spawning mob goes to random direction
 Spawn NPS on <player> position
 
 after spawning NPC  goes to random direction
+
 #OnlineCount
 
 Under construction
-
-#helper
-
-code example 
-
-
-#SimpleGroup
-команды групп доступны только опам.
-addgroup <name> создать группу
-rmgroup <name> удалить группу
-lsgroup список групп
-
-group add|rm|ls
-add <user> <group> добавить пользователя в группу
-rm <user> <group> удалить пользователя из группы
-ls список групп пользователя
-
-+ мидифицированная версия PrivateAreaProtector
-`/protect g <groupname>`
