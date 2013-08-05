@@ -110,7 +110,7 @@ Small Changelog
     {
       switch ($event) {
         case "player.join":
-
+          $time_start= microtime(true);
           //console("[debug] join " . $data->username);
 
           $level     = $this->api->level->getDefault();
@@ -119,10 +119,12 @@ Small Changelog
 
           if (in_array($user, $this->prizons['users'])) {
             $target = $this->api->player->get($user);
+if(!isset($target)) break;
             $target->setSpawn($prisonPos);
             $target->teleport($prisonPos);
           }
-
+          $time = microtime(true) - $time_start;
+          console("prizone registered. runtime: $time");
           break;
       }
     }
