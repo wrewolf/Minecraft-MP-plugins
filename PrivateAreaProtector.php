@@ -25,7 +25,7 @@
       $this->createConfig();
       $this->api->console->register("unprotect", "Unprotects your private area.", array($this, "commandH"));
       $this->api->console->register("protect", "Protects the area for you.", array($this, "commandH"));
-      $this->api->console->register("sprotect", "Spec Protects the area for console.", array($this, "commandH"));
+      $this->api->console->register("sprotect", "Special Protects the area for console.", array($this, "commandH"));
       $this->api->ban->cmdWhitelist("unprotect");
       $this->api->ban->cmdWhitelist("protect");
       $this->api->addHandler("player.block.place", array($this, "handle"), 7);
@@ -63,9 +63,9 @@
 
               $this->config[$level][$owner] = array("protect" => true, "min" => $min, "max" => $max);
               $this->writeConfig($this->config);
-              $output .= "Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
+              $output .= "[AreaProtector] Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
             } else {
-              $output .= "usage sprotect nick level x1 y1 z1 x y2 z2";
+              $output .= "[AreaProtector] Usage sprotect nick level x1 y1 z1 x2 y2 z2";
             }
             break;
           case "protect":
@@ -79,7 +79,7 @@
                 }
                 $min = implode(",", $config['min']);
                 $max = implode(",", $config['max']);
-                $output .= "[\x1b[32mPROTECT: " . $protect . "\x1b[0m] " . $name . "'s area (\x1b[36m" . $min . "\x1b[0m)-(\x1b[36m" . $max . "\x1b[0m) : $key\n";
+                $output .= "[AreaProtector] [\x1b[32mPROTECT: " . $protect . "\x1b[0m] " . $name . "'s area (\x1b[36m" . $min . "\x1b[0m)-(\x1b[36m" . $max . "\x1b[0m) : $key\n";
               }
             }
             break;
@@ -89,16 +89,16 @@
             $level = array_shift($params);
             $user  = array_shift($params);
             if (empty($user)) {
-              $output .= "Usage: /unprotect <level> <area owner>\n";
+              $output .= "[AreaProtector] Usage: /unprotect <level> <area owner>\n";
               break;
             }
             if (!$this->config[$level][$user]['protect']) {
-              $output .= "His area is not protected.\n";
+              $output .= "[AreaProtector] His area is not protected.\n";
               break;
             }
             $this->config[$level][$user]['protect'] = false;
             $this->writeConfig($this->config);
-            $output .= "Lifted the protection.\n";
+            $output .= "[AreaProtector] Lifted the protection.\n";
             break;
         }
       } elseif ($issuer instanceof Player) {
@@ -113,12 +113,12 @@
                 $group            = array_shift($params);
                 $usercheckingroup = $this->api->dhandle("group.existOf", array('user' => $user, "group" => $group));
                 if (!$usercheckingroup) {
-                  $output .= "you are not a member of a group $group\n";
+                  $output .= "[AreaProtector] You are not a member of a group $group\n";
                   break;
                 }
               case "":
                 if (!isset($this->pos1[$user]) or !isset($this->pos2[$user])) {
-                  $output .= "Make a selection first.\nUsage: /protect <pos1 | pos2>\n";
+                  $output .= "[AreaProtector] Make a selection first.\nUsage: /protect <pos1 | pos2>\n";
                   break;
                 }
                 $pos1  = $this->pos1[$user];
@@ -138,7 +138,7 @@
                   $this->config[$level]["g:" . $group] = array("protect" => true, "min" => $min, "max" => $max);
                 }
                 $this->writeConfig($this->config);
-                $output .= "Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
+                $output .= "[AreaProtector] Protected this area ($minX, $minY, $minZ)-($maxX, $maxY, $maxZ) : $level\n";
                 break;
               case "pos1":
               case "1":
@@ -164,7 +164,7 @@
             break;
           case "unprotect":
             if (!$this->config[$user]['protect']) {
-              $output .= "Your area is not protected.\n";
+              $output .= "[AreaProtector] Your area is not protected.\n";
               break;
             }
             $level = $issuer->entity->level->getName();
@@ -173,12 +173,12 @@
                 $this->config[$level][$user]['protect'] = false;
                 unset($this->config[$level][$user]);
                 $this->writeConfig($this->config);
-                $output .= "Lifted the protection.\n";
+                $output .= "[AreaProtector] Lifted the protection.\n";
               } else {
-                $output .= "This area is not protected.\n";
+                $output .= "[AreaProtector] This area is not protected.\n";
               }
             } else {
-              $output .= "This area is not protected.\n";
+              $output .= "[AreaProtector] This area is not protected.\n";
             }
             break;
         }
@@ -197,13 +197,13 @@
               $usercheckingroup = $this->api->dhandle("group.existOf", array('user' => $data['player']->username, "group" => substr($name, 2)));
               if (!$usercheckingroup) {
                 $name = substr($name, 2);
-                $this->api->chat->sendTo(false, "This is Group $name's private area.", $data['player']->username);
+                $this->api->chat->sendTo(false, "[AreaProtector] This is Group $name's private area.", $data['player']->username);
                 return true;
               } else {
                 return false;
               }
             } else {
-              $this->api->chat->sendTo(false, "This is $name's private area.", $data['player']->username);
+              $this->api->chat->sendTo(false, "[AreaProtector] This is $name's private area.", $data['player']->username);
               return true;
             }
           }

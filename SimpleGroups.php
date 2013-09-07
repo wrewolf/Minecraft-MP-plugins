@@ -28,10 +28,11 @@
       //$this->api->addHandler("player.join", array($this, "eventHandler"));
       $this->api->addHandler("group.existOf", array($this, "eventHandler"));
       $this->api->addHandler("group.groups", array($this, "eventHandler"));
-      $this->api->console->register("group", "group add|rm group user", array($this, "commandHandler"));
+      $this->api->console->register("group", "group add|rm|ls|lsu <user> <group>", array($this, "commandHandler"));
       $this->api->console->register("lsgroup", "lsgroup list of groups", array($this, "commandHandler"));
-      $this->api->console->register("rmgroup", "rmgroup", array($this, "commandHandler"));
-      $this->api->console->register("addgroup", "addgroup", array($this, "commandHandler"));
+      $this->api->console->register("rmgroup", "rmgroup <group>", array($this, "commandHandler"));
+      $this->api->console->register("addgroup", "addgroup <group>", array($this, "commandHandler"));
+      $this->api->console->register("reloadgroup", "reload group config file", array($this, "commandHandler"));
       $this->path   = $this->api->plugin->createConfig($this, array());
       $this->config = $this->api->plugin->readYAML($this->path . "config.yml");
       //console("SimpleGroups Inited");
@@ -58,8 +59,8 @@
           }
           $output .= implode(", ", $gg);
           break;
-          //  case "player.join":
-          //  break;
+        //  case "player.join":
+        //  break;
       }
       return $output;
     }
@@ -73,44 +74,111 @@
           $command = array_shift($params);
           switch ($command) {
             case "add":
-              $user  = array_shift($params);
-              $group = array_shift($params);
-
+              $user  = strtolower(array_shift($params));
+              $group = strtolower(array_shift($params));
+              if ($issuer != "console") {
+                if (!$this->api->dhandle("group.groups", array('user' => $issuer->username))) {
+                  $output .= "[SimpleGroup] You not member of $group group";
+                  break;
+                }
+              }
+              if ($user == "" or $group == "") {
+                $output .= "[SimpleGroup] Not set user or group name";
+                break;
+              }
               $this->config[$group][] = $user;
               $this->api->plugin->writeYAML($this->path . "config.yml", $this->config);
+              $output .= "[SimpleGroup] User $user added to $group group";
               break;
             case "rm":
-              $user  = array_shift($params);
-              $group = array_shift($params);
-
+              $user  = strtolower(array_shift($params));
+              $group = strtolower(array_shift($params));
+              if ($issuer != "console") {
+                if (!$this->api->dhandle("group.groups", array('user' => $issuer->username))) {
+                  $output .= "[SimpleGroup] You not member of $group group";
+                  break;
+                }
+              }
+              if ($user == "" or $group == "") {
+                $output .= "[SimpleGroup] Not set user or group name";
+                break;
+              }
               unset($this->config[$group][array_search($user, $this->config[$group])]);
               $this->api->plugin->writeYAML($this->path . "config.yml", $this->config);
+              $output .= "[SimpleGroup] User $user removed to $group group";
+              break;
+            case "lsu":
+              if ($issuer != "console") {
+                $user = $issuer->username;
+              } else {
+                $user = strtolower(array_shift($params));
+              }
+              $output .= "[SimpleGroup] User $user groups: ";
+              $output .= $this->api->dhandle("group.groups", array('user' => $user));
               break;
             case "ls":
-              $output .= $this->api->dhandle("group.groups", array('user' => array_shift($params)));
+              $group = strtolower(array_shift($params));
+              if ($issuer != "console") {
+                if (!$this->api->dhandle("group.groups", array('user' => $issuer->username))) {
+                  $output .= "[SimpleGroup] You not member of $group group";
+                  break;
+                }
+              }
+              $output .= "[SimpleGroup] Group $group contain: ";
+              $output .= implode(", ", $this->config[$group]);
               break;
           }
+          break;
+        case "groupprint":
+          $output .= "[SimpleGroup] Dump: " . print_r($this->config, true);
           break;
         case "lsgroup":
           $g = array();
           foreach ($this->config as $key => $value) {
             $g[] = $key;
           }
-          $output = implode(', ', $g);
+
+          $output .= "[SimpleGroup] List: " . implode(', ', $g);
           break;
         case "rmgroup":
-          unset($this->config[$params[0]]);
+          $group = strtolower(array_shift($params));
+          if ($group == "") {
+            $output = "[SimpleGroup] Not set target group name";
+            break;
+          }
+          unset($this->config[$group]);
           $this->api->plugin->writeYAML($this->path . "config.yml", $this->config);
+          $output .= "[SimpleGroup] Group $group removed";
           break;
         case "addgroup":
-          if (!in_array($params[0], $this->config)) {
-            $this->config[]           = $params[0];
-            $this->config[$params[0]] = array();
-            $this->api->plugin->writeYAML($this->path . "config.yml", $this->config);
-            $output .= "Group added";
-          } else {
-            $output .= "Group exist";
+          $group = strtolower(array_shift($params));
+          if ($group == "") {
+            $output = "[SimpleGroup] Not set target group name";
+            break;
           }
+          if (!in_array($group, $this->config)) {
+            $this->config[]       = $params[0];
+            $this->config[$group] = array();
+
+            $user                   = $issuer->username;
+            $this->config[$group][] = $user;
+
+            $this->api->plugin->writeYAML($this->path . "config.yml", $this->config);
+            $output .= "[SimpleGroup] Group $group added\nUser $user added to $group group";
+          } else {
+            $output .= "[SimpleGroup] Group $group exist";
+          }
+          break;
+        case "reloadgroup":
+          if ($issuer != "console") {
+            $output .= "[SimpleGroup] Only for Console";
+            break;
+          }
+          $this->config = $this->api->plugin->readYAML($this->path . "config.yml");
+          $output .= "[SimpleGroup] Config reloaded";
+          break;
+        case "":
+          $output .= "[SimpleGroup] Usage:\ngroup add|rm|ls|lsu <user> <group>\nlsu - list user groups, ls list group users\nlsgroup list of groups\nrmgroup <group>\naddgroup <group>";
           break;
       }
       return $output;

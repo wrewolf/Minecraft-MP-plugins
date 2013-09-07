@@ -33,6 +33,7 @@ Small Changelog
       $this->api->console->register("tree", "grow Tree", array($this, "commandH"));
       $this->api->console->register("heal", "Heal <nick>", array($this, "commandH"));
       $this->api->console->register("god", "god <nick>", array($this, "commandH"));
+      $this->api->console->register("setMapSpawn", "set current position as map spawn", array($this, "commandH"));
       $this->interval = 40;
       $this->api->schedule($this->interval, array($this, "handle"), array(), true, "server.schedule");
 
@@ -92,12 +93,18 @@ Small Changelog
             case 0:
               $meta = 0;
               break;
+            case "r":
+              $meta = (int)rand(0,2);
+              break;
             default:
               $output .= "Usage: /$cmd <tree|brich|redwood>\n";
               break 2;
           }
           TreeObject::growTree($issuer->level, new Vector3 (((int)$issuer->entity->x), ((int)$issuer->entity->y), ((int)$issuer->entity->z)), new Random(), $meta);
           $output .= "tree " . strtolower($params[0]) . " spawned";
+          break;
+        case "setMapSpawn":
+          $this->api->level->getDefault()->setSpawn(new Vector3 (((int)$issuer->entity->x), ((int)$issuer->entity->y), ((int)$issuer->entity->z)));
           break;
       }
       return $output;
