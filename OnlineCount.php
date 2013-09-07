@@ -41,6 +41,8 @@ apiversion=9
       $data['handlers'] = "Handlers: " . $info["handlers"];
       $data['actions']  = "Actions: " . $info["actions"];
       $data['garbage']  = "Garbage cycles: " . $info["garbage"];
+      $data['servername']=$this->server->name;
+      $data['serverport']=$this->server->port;
       $data['users']    = array();
       foreach ($this->server->clients as $c) {
         $data['users'][] = array('name' => $c->username, 'x' => $c->entity->x, 'y' => $c->entity->y, 'z' => $c->entity->z, 'level' => $c->level->getName());
