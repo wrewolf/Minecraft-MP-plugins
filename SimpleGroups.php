@@ -127,6 +127,9 @@
               $output .= "[SimpleGroup] Group $group contain: ";
               $output .= implode(", ", $this->config[$group]);
               break;
+            case "":
+              $output .= "[SimpleGroup] Usage:\ngroup add|rm|ls|lsu <user> <group>\nlsu - list user groups, ls list group users\nlsgroup list of groups\nrmgroup <group>\naddgroup <group>";
+              break;
           }
           break;
         case "groupprint":
@@ -176,9 +179,6 @@
           }
           $this->config = $this->api->plugin->readYAML($this->path . "config.yml");
           $output .= "[SimpleGroup] Config reloaded";
-          break;
-        case "":
-          $output .= "[SimpleGroup] Usage:\ngroup add|rm|ls|lsu <user> <group>\nlsu - list user groups, ls list group users\nlsgroup list of groups\nrmgroup <group>\naddgroup <group>";
           break;
       }
       return $output;
