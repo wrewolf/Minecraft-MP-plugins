@@ -11,7 +11,7 @@ apiversion=9
 
   class OnlineCount implements Plugin
   {
-    private $api, $path, $config, $server;
+    private $api, $path, $config, $server, $db;
 
     public function __construct(ServerAPI $api, $server = false)
     {
@@ -24,6 +24,11 @@ apiversion=9
       $this->path = $this->api->plugin->configPath($this);
       @mkdir($this->path);
       $this->api->schedule(100, array($this, "tickHandler"), array(), true, "server.schedule");
+
+      if ($this->db = new SQLite3($this->path."main.db")) {
+        // first let the engine check table, and create it eventualy
+        $q = @$this->db->query('CREATE TABLE IF NOT EXISTS main (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "timestamp" NOT NULL DEFAULT CURRENT_TIMESTAMP, tps real, online int);');
+      }
     }
 
     public function tickHandler($data, $event)
@@ -41,14 +46,23 @@ apiversion=9
       $data['handlers'] = "Handlers: " . $info["handlers"];
       $data['actions']  = "Actions: " . $info["actions"];
       $data['garbage']  = "Garbage cycles: " . $info["garbage"];
-      $data['servername']=$this->server->name;
-      $data['serverport']=$this->server->port;
       $data['users']    = array();
       foreach ($this->server->clients as $c) {
         $data['users'][] = array('name' => $c->username, 'x' => $c->entity->x, 'y' => $c->entity->y, 'z' => $c->entity->z, 'level' => $c->level->getName());
       }
+
+      $ops                 = new Config(DATA_PATH . "ops.txt", CONFIG_LIST); //Open list of OPs
+      $data['ops'][]       = $ops->getAll(true);
+      $banned              = new Config(DATA_PATH . "banned.txt", CONFIG_LIST); //Open Banned Usernames list file
+      $data['banned'][]    = $banned->getAll(true);
+      $bannedIPs           = new Config(DATA_PATH . "banned-ips.txt", CONFIG_LIST); //Open Banned IPs list file
+      $data['bannedIPs'][] = $bannedIPs->getAll(true);
+
       //console(print_r(json_encode($data), true));
       file_put_contents($this->path . "counter.txt", json_encode($data));
+      preg_match_all('!\d+\.*\d*!', $info['tps'], $matches);
+      $tps = $matches[0][0];
+      $this->db->query("INSERT INTO main (tps,online) VALUES ('$tps','{$info["players"]}')");
     }
 
     public function __destruct()
