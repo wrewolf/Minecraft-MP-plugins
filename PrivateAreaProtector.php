@@ -199,8 +199,6 @@
                 $name = substr($name, 2);
                 $this->api->chat->sendTo(false, "[AreaProtector] This is Group $name's private area.", $data['player']->username);
                 return true;
-              } else {
-                return false;
               }
             } else {
               $this->api->chat->sendTo(false, "[AreaProtector] This is $name's private area.", $data['player']->username);
@@ -209,7 +207,8 @@
           }
         }
       }
-
+	  if($this->api->dhandle("admin.isSa", array('user' => $data['player']->username)))
+		return true;
       return false;
     }
 
