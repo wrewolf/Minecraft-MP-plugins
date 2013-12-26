@@ -189,7 +189,10 @@
     public function checkProtect($data, $name, $config)
     {
       $this->debug_print("{$config['min'][0]},{$config['min'][1]},{$config['min'][2]}  {$config['max'][0]},{$config['max'][1]},{$config['max'][2]}  : {$data['target']->x},{$data['target']->y},{$data['target']->z} ");
-
+      if ($this->api->dhandle("admin.isSa", array('user' => $data['player']->username))){
+        console("sa");
+        return false;
+      }
       if ($config['min'][0] <= $data['target']->x and $data['target']->x <= $config['max'][0]) {
         if ($config['min'][1] <= $data['target']->y and $data['target']->y <= $config['max'][1]) {
           if ($config['min'][2] <= $data['target']->z and $data['target']->z <= $config['max'][2]) {
@@ -207,8 +210,7 @@
           }
         }
       }
-	  if($this->api->dhandle("admin.isSa", array('user' => $data['player']->username)))
-		return true;
+
       return false;
     }
 
