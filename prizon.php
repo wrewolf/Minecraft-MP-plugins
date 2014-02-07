@@ -30,9 +30,10 @@ Small Changelog
     {
       $this->createConfig();
       $this->api->event('player.join', array($this, 'handle'));
-      $this->api->console->register('prizone', 'Jail player on the server.', array($this, 'commandH'));
-      $this->api->console->register('unprizone', 'Release player on the server.', array($this, 'commandH'));
-      $this->api->console->register('prizonelist', 'Prizon players on the server.', array($this, 'commandH'));
+      $this->api->console->register('prizon', 'Jail player on the server.', array($this, 'commandH'));
+      $this->api->console->register('unprizon', 'Release player on the server.', array($this, 'commandH'));
+      $this->api->console->register('prizonlist', 'Prizon players on the server.', array($this, 'commandH'));
+      $this->api->console->register('setprizon', 'setprizon <x> <y> <z>', array($this, 'commandH'));
     }
 
     public function createConfig()
@@ -51,7 +52,7 @@ Small Changelog
     {
       $output = "";
       switch ($cmd) {
-        case 'setprizone':
+        case 'setprizon':
 
 
           array_push($this->prizons['users'], $issuer->username);
@@ -64,7 +65,7 @@ Small Changelog
 
 
           break;
-        case 'prizone':
+        case 'prizon':
           $user = $this->api->player->get($params[0]);
           if ($user instanceof Player) {
             array_push($this->prizons['users'], $user->username);
@@ -77,7 +78,7 @@ Small Changelog
             $this->api->chat->broadcast("User " . $user->username . " jailed by " . $issuer->username);
           }
           break;
-        case "unprizone":
+        case "unprizon":
           $user = $this->api->player->get($params[0]);
           if ($user instanceof Player) {
             $this->prizons['users'] = array_diff($this->prizons['users'], array($user->username));
@@ -89,7 +90,7 @@ Small Changelog
             $this->api->chat->broadcast("User " . $user->username . " released from jail by " . $issuer->username);
           }
           break;
-        case "prizonelist":
+        case "prizonlist":
           $x      = $this->prizons['prizon']['x'];
           $y      = $this->prizons['prizon']['y'];
           $z      = $this->prizons['prizon']['z'];

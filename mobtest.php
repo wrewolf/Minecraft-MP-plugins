@@ -57,7 +57,7 @@
       foreach (array_keys($npcconflist) as $pname) {
         $p   = $npcconflist[$pname];
         $pos = new Position($p["Pos"][0], $p["Pos"][1], $p["Pos"][2], $this->api->level->getDefault());
-        createNpc($pname, $pos);
+        createMob($pname, $pos);
       }
     }
 

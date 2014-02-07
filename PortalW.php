@@ -3,11 +3,11 @@
   /*
   __PocketMine Plugin__
   name=Portal
-  description=
+  description=Sing portal
   version=0.1
-  author=WreWolf
+  author=WreWolf,xpyctum
   class=PortalW
-  apiversion=9
+  apiversion=9,10,11,12
   */
 
 
@@ -61,6 +61,11 @@
                 case "place":
                   console("touch sign place " . $tile->data['Text1'] . $tile->data['Text2']);
                   if ($tile->data['Text1'] == "w:" and $tile->data['Text3'] == "tp") {
+					if($this->api->ban->isOp($issuer->username) == false){
+						$this->api->chat->sendTo(false, "[PortalW] Access denied! Ops only!", $data->data['creator']);
+						$data->setText("[BLOCK]", $data->data["Text4"]."[Blocked]");
+						break;
+					}
                     $mapname = $tile->data['Text2'];
                     $lvlname = $tile->data['Text1'] . $mapname;
                     $username=$data['player']->username;

@@ -26,7 +26,7 @@ apiversion=11
       $this->api->addHandler("admin.isSa", array($this, "eventHandler"));
       $this->api->console->register("addsa", "", array($this, "addsaHandler"));
       $this->api->console->register("rmsa", "", array($this, "rmsaHandler"));
-      $this->api->console->register("lssa", "PocketMoney command", array($this, "lssaHandler"));
+      $this->api->console->register("lssa", "superAdmins command", array($this, "lssaHandler"));
     }
 
     public function addsaHandler($cmd, $args, $issuer, $alias)
