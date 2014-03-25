@@ -138,7 +138,8 @@
         case "lsgroup":
           $g = array();
           foreach ($this->config as $key => $value) {
-            $g[] = $key;
+			if(count($this->config[$key])>1)
+				$g[] = $key;
           }
 
           $output .= "[SimpleGroup] List: " . implode(', ', $g);
