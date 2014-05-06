@@ -43,8 +43,8 @@
       $output = "";
       switch ($event) {
         case "group.existOf":
-          $user  = $data["user"];
-          $group = $data["group"];
+          $user  = strtolower($data["user"]);
+          $group = strtolower($data["group"]);
           $rez   = false;
           if (isset($this->config[$group]))
             $rez = in_array($user, $this->config[$group]);
